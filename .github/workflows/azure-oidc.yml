@@ -1,0 +1,43 @@
+name: GitHub Actions Azure OIDC Lab
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  azure-oidc:
+    name: Authenticate with Azure using OIDC
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify Azure Authentication
+        run: |
+          echo "Checking Azure account..."
+          az account show \
+            --query "{subscription:name, tenant:tenantId}" \
+            --output table
+
+      - name: Create Resource Group
+        run: |
+          az group create \
+            --name github-oidc-lab-rg \
+            --location eastus
+
+      - name: Verify Resource Group
+        run: |
+          az group show \
+            --name github-oidc-lab-rg \
+            --output table
